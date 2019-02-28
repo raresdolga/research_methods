@@ -1,0 +1,16 @@
+Virtual Box IP: 127.0.0.1
+
+django issuer super-user: issuer_admin
+	      password: issuer_10
+	      email: rares.dolga.16@ucl.ac.uk
+super-user django user-project: usr_admin
+	 	  password: usr_10
+		  email: rares.dolga.16@ucl.ac.uk
+
+
+Django + Apache config:  
+https://www.digitalocean.com/community/tutorials/how-to-serve-django-applications-with-apache-and-mod_wsgi-on-ubuntu-16-04
+
+DO NOT modify 000-default.conf create a django file instead!!!
+
+
