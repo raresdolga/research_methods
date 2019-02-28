@@ -11,7 +11,7 @@ super-user django user-project: usr_admin
 Django + Apache config:  
 https://www.digitalocean.com/community/tutorials/how-to-serve-django-applications-with-apache-and-mod_wsgi-on-ubuntu-16-04
 
-000-default.conf = Config file for Apache made for projects.
+000-default.conf = content Config file for Apache made for projects. Contents of this file must be copied in: /etc/apache2/sites-available/000-default.conf
 
 Make a virtual environment for each project (1 issuer, 1 user) - Otherwise Apache won't work.
 
