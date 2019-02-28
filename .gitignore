@@ -2,6 +2,8 @@
 
 ##Coconut library code ##
 coconut-lib/
+##pycharm##
+.idea/
 ### OSX ###
 .DS_Store
 .AppleDouble
