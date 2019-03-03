@@ -7,7 +7,7 @@ class SignatureTestCase(TestCase):
     def setUp(self):
         self.signature = Signature()
 
-    def test_animals_can_speak(self):
+    def test_sign_performed_correctly(self):
     	obj = self.signature
     	sig, hash_f = obj.sign_message(obj.G, obj.sig_key,"TEST message")
     	res = obj.verify_signature(obj.G, obj.pub_key, sig, hash_f)
