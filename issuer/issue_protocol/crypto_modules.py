@@ -45,7 +45,7 @@ class Signature:
 		signature = do_ecdsa_sign(G, s_k, digest)
 		return (signature, digest)
 
-	def verify_signature(self,G, p_k, sig, hash_):
+	def verify_signature(self, G, p_k, sig, hash_):
 		""" Verifies the signature provided aginst a public key
 			The public key, group G must correspond to secret key used for signing
 			Not the public key of the class
