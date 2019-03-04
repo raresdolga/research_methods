@@ -26,10 +26,6 @@ def login_view(request):
 	if request.method == 'POST':
 		form = AuthenticationForm(data=request.POST)
 		if form.is_valid():
-			_find_attribute_vals(['name', 'age'])
-			username = form.cleaned_data.get('username')
-			raw_password = form.cleaned_data.get('password1')
-			#user = authenticate(username=username, password=raw_password)
 			user = form.get_user()
 			login(request, user)
 			return redirect('accounts:get_credential')

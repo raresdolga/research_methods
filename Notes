@@ -12,9 +12,16 @@ Django + Apache config:
 https://www.digitalocean.com/community/tutorials/how-to-serve-django-applications-with-apache-and-mod_wsgi-on-ubuntu-16-04
 
 000-default.conf = content Config file for Apache made for projects. Contents of this file must be copied in: /etc/apache2/sites-available/000-default.conf
+Do not forget to give necessary permissions for appache to read/write in project files and db. Follow the tutorial for this.
 
 Make a virtual environment for each project (1 issuer, 1 user) - Otherwise Apache won't work.
 
+For HTTPS:
+	1. Generate a local certificate(bellow tutorial)
+	2. Configure your default-ssl.conf with code from default-ssl.conf in this repo. Change your path structure as needed. 
+	3. The HTTPS will run on port 443.
+	4. The 80 port (default) is configure to redirect to 443
+	Link: https://www.digitalocean.com/community/tutorials/how-to-create-a-ssl-certificate-on-apache-for-ubuntu-14-04
 TODO: Make this a README 
 
 
