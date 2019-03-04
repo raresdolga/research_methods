@@ -50,7 +50,7 @@ def request_credential(request):
 	"""Asks this issuer for a credential
 	   Redirects to login (issuance policy)
 	"""
-	pass
+	return HttpResponse("These 2 servers communicated succesfully");
 
 def _find_attribute_vals(attribute_keys):
 	"""Queries the database to find values for attributes requested
