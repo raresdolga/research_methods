@@ -7,14 +7,15 @@ import ssl
 # Create your views here.
 def test_connect_issuer(request):
 
-	#Do not use normal certificate
-	# calee certificate made by me and verified by a trusted authority
-	context = ssl._create_unverified_context()
+	#Do not use normal certificate, specify self signed certificate
+	# calee certificate made by me and NOT verified by a trusted authority
+	cert_path = "/etc/apache2/ssl/apache.crt";
 	url = 'https://127.0.0.1/accounts/req_cred'
-	response =  urllib.request.urlopen(url, context).read()
+	response =  urllib.request.urlopen(url, cafile=cert_path)
+	content =  response.read().decode(response.headers.get_content_charset())
 	data = {
         'objective': 'Test Connection',
-        'other server response': json.loads(response)
+        'other server response':content
     }
 	return JsonResponse(data)
 
