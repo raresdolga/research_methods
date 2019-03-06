@@ -1,0 +1,4 @@
+0000000000000000000000000000000000000000 8dc73b5df049d05bb8431326f1e6fa93b96a646b raresdolga <rares.dolga.16@ucl.ac.uk> 1551315072 +0000	commit (initial): apache and django configured for 2 projects: issuer & user web apps
+8dc73b5df049d05bb8431326f1e6fa93b96a646b 9cbbe45223459cc006f1e818a68b5b94e0d8ab98 raresdolga <rares.dolga.16@ucl.ac.uk> 1551315202 +0000	commit: idea added to gitignore
+9cbbe45223459cc006f1e818a68b5b94e0d8ab98 68becb2621c5c11edbf32133b10469a88e563cfe raresdolga <rares.dolga.16@ucl.ac.uk> 1551315665 +0000	commit: added Apache config file for reference
+68becb2621c5c11edbf32133b10469a88e563cfe bc45ead9926831f21a337961017ae22b758f96c0 raresdolga <rares.dolga.16@ucl.ac.uk> 1551315679 +0000	commit: added Apache config file for reference
