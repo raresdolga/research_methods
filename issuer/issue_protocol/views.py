@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 
 # django rest
 from rest_framework.status import (
@@ -9,20 +10,29 @@ from rest_framework.status import (
     HTTP_404_NOT_FOUND,
     HTTP_200_OK
 )
+
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.authtoken.models import Token
 
-#User Interface Views.
+import urllib.request
+import json
+import ssl
+
+# User Interface Views. - Not relevent for the API
+"""The following functions are mostly for frontend authentication"""
 
 def signup(request):
+	"""Example of how frontend implements signup.
+		The html files are in templates/registration folder folder 
+	"""
 	if request.method == 'POST':
 		form = UserCreationForm(request.POST)
 		if form.is_valid():
 			user = form.save()
 			username = form.cleaned_data.get('username')
 			raw_password = form.cleaned_data.get('password1')
-			# authenticate(username=username, password=raw_password)
 			login(request, user)
 			return redirect('accounts:get_credential')
 	else:
@@ -31,7 +41,7 @@ def signup(request):
 
 
 def login_view(request):
-	"""Represents the issuance policy"""
+	"""Frontend login. Find html files in templates/registration"""
 	if request.method == 'POST':
 		form = AuthenticationForm(data=request.POST)
 		if form.is_valid():
@@ -42,13 +52,18 @@ def login_view(request):
 		form = AuthenticationForm()
 	return render(request, 'registration/login.html', {'form':form})
 
-# API views - requries rest auth
+
+#===============API views - requries rest auth=====================
+"""Views that implement issuer API functionality """
 
 @api_view(["POST"])
 @permission_classes((AllowAny,))
 def login_api(request):
-    """ Implements login using tokens
-        Given a username and password returns a valid token 
+    """ Implements login.
+        Args: 
+        	request (POST): Body has a username and password in JSON format
+        Return:
+     		tok, Status (JSON, int) Returns a valid token as a JSON objec
     """
     username = request.data.get("username")
     password = request.data.get("password")
@@ -80,17 +95,10 @@ def get_credential(request):
 def request_credential(request):
 	"""Asks this issuer for a credential
 	   Redirects to login (issuance policy)
+
 	"""
 	return HttpResponse("These 2 servers communicated succesfully");
 
-@api_view(['GET'])
-@permission_classes((AllowAny,))
-def test_connect(request):
-	"""Test the HTTPS connection
-	"""
-	#response = redirect("accounts:login")
-	
-	return HttpResponse("These 2 servers communicated succesfully");
 
 def _verify_attribute_vals(attributes):
 	"""Queries the database to verify values for attributes requested
@@ -109,3 +117,41 @@ def _verify_attribute_vals(attributes):
 			ok = False
 			invalid_fields.append(key)
 	return (ok, invalid_fields)
+
+
+#==================Functions used for testing connection=================
+
+""" Functions used for mannual tests of connection between 2 servers
+	Do not respect the design of our system, but do not delete them yet.
+	Use the endpoints defined by this functions for quick testing
+	Examples of how to handle or send requests. 
+	Look in issue_protocol/urls.py to see how the paths of the views
+"""
+@api_view(['GET'])
+@permission_classes((IsAuthenticated,))
+def test_connect(request):
+	""" Test the HTTPS connection.
+		Handles a HTTPS request from a different server
+		Send a response if succesfully passed the authentication
+	"""
+	return HttpResponse("These 2 servers communicated succesfully");
+
+@api_view(['GET'])
+@permission_classes((AllowAny,))
+def test_ledger(request):
+	""" Test connection with the ledger.
+		Send a https request to the ledger.
+		Mock data sent
+	"""
+	cert_path = "/etc/apache2/ssl/apache.crt";
+	url = 'https://51.145.54.197:3000/api/Authenticator'
+	
+	data = {
+	  "$class": "org.example.biznet.CredentialCard",
+	  "credId": "string",
+	  "cardDescription": "string",
+	  "active": True
+	}
+	response =  urllib.request.urlopen(url, data= data, cafile=cert_path)
+	content =  response.read().decode(response.headers.get_content_charset())
+	return JsonResponse(data)
