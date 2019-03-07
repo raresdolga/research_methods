@@ -37,7 +37,7 @@ class Signature:
 		   		G (EcGroup): group in which math is done. 
 		   		s_k (Bn): secret key used to sign.
 		   		messg (str): string to sign. Default is "Credential"
-		   	Returns: (sig, hash) (str,hash): signature, hash of messg
+		   	Returns: (sig, hash) ((Bn, Bn),hash): signature, hash of messg
 		"""
 		# Hash the (potentially long) message into a short digest.
 		digest = sha256(messg.encode()).digest()
@@ -45,7 +45,7 @@ class Signature:
 		signature = do_ecdsa_sign(G, s_k, digest)
 		return (signature, digest)
 
-	def verify_signature(self, G, p_k, sig, hash_):
+	def verify_signature(self, G, p_k, sig, messg):
 		""" Verifies the signature provided aginst a public key
 			The public key, group G must correspond to secret key used for signing
 			Not the public key of the class
@@ -53,11 +53,21 @@ class Signature:
 				G (EcGroup):the group in which math is done.
 				p_k (Bn): public key used to sign.
 		   		sig (str): signature to ckeck
-		   		hash_ (Bytes): the hash of the initial messg
+		   		messg (str): the initial messg
 		   	Returns:
 		   		verified (Boolean): True if sig valid, False otherwise
 		"""
+		hash_ = self.hash_str(messg)
 		return do_ecdsa_verify(G, p_k, sig, hash_)
+
+	def hash_str(self,messg):
+		""" Signs the message
+			Args:
+				messg (str): the message to be hashed
+			Return:
+				hash_ (str): the hashed value of the messg
+		"""
+		return sha256(messg.encode()).digest()
 
 
 
