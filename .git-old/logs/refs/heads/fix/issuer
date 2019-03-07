@@ -1,6 +1,0 @@
-0000000000000000000000000000000000000000 bc45ead9926831f21a337961017ae22b758f96c0 raresdolga <rares.dolga.16@ucl.ac.uk> 1551550507 +0000	branch: Created from HEAD
-bc45ead9926831f21a337961017ae22b758f96c0 aa550c2693037263d793e25546393cb808ebf4f9 raresdolga <rares.dolga.16@ucl.ac.uk> 1551550559 +0000	commit: basic class to sign messages
-aa550c2693037263d793e25546393cb808ebf4f9 dbfdd68fa9e037190cad717c61e8f97d0fcf342c raresdolga <rares.dolga.16@ucl.ac.uk> 1551625512 +0000	commit: basic interface issuance protocol done
-dbfdd68fa9e037190cad717c61e8f97d0fcf342c 8fbb8872e23a857cbac9b6dc5cd6bba5c039485e raresdolga <rares.dolga.16@ucl.ac.uk> 1551625751 +0000	commit: basic interface issuance protocol done
-8fbb8872e23a857cbac9b6dc5cd6bba5c039485e 281d30ccc331786d6e465225bcdc4381dc2bbeae raresdolga <rares.dolga.16@ucl.ac.uk> 1551729433 +0000	commit: added https
-281d30ccc331786d6e465225bcdc4381dc2bbeae 4945de49212496ed2912440cbabf975506077ce6 raresdolga <rares.dolga.16@ucl.ac.uk> 1551742715 +0000	commit: added https, problem when connecting certif
