@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
 # django rest
@@ -165,6 +165,7 @@ def _create_cred(data):
 	sig, hash_ = sign_algh.sign_message(sign_algh.G, sign_algh.sig_key, str_cred)
 	# add signature - hex of petlib.BNs in the tuples
 	# use from_hex() to transform back in petlib.BN
+	logger.error(type(sig[0].hex()))
 	credential['signaure'] = [sig[0].hex(), sig[1].hex()]
 	return credential
 
@@ -192,6 +193,7 @@ def test_ledger(request):
 		Send a https request to the ledger.
 		Mock data sent
 	"""
+	"""
 	cert_path = "/etc/apache2/ssl/apache.crt";
 	url = 'https://51.145.54.197:3000/api/Authenticator'
 	
@@ -204,3 +206,18 @@ def test_ledger(request):
 	response =  urllib.request.urlopen(url, data= data, cafile=cert_path)
 	content =  response.read().decode(response.headers.get_content_charset())
 	return JsonResponse(data)
+	"""
+	# Dhen's code
+	try:
+		url = "http://aires-aps.uksouth.cloudapp.azure.com:3000/api/CredentialCard"
+		data = { "$class" : "org.example.biznet.CredentialCard",
+		 "credId" : "3", "cardDescription":"hello","active": True } # Data
+		req = urllib.request.Request(url)
+		req.add_header('Content-type', 'application/json; charset=utf-8')
+		json_data = json.dumps(data)
+		json_as_bytes = json_data.encode('utf-8')
+		response = urllib.request.urlopen(req, json_as_bytes)
+	except Exception as e:
+		logger.error(e)
+		return HttpResponse(e)
+	return Response(response)

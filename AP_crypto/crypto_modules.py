@@ -55,7 +55,7 @@ class Signature:
 		   		sig (str): signature to ckeck
 		   		_hash (str): hash of the initial messg
 		   	Returns:
-		   		verified (Boolean): True if sig valid, False otherwise
+		   		verified (Bool): True if sig valid, False otherwise
 		"""
 		return do_ecdsa_verify(G, p_k, sig, _hash)
 
