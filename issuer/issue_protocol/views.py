@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
 # django rest
@@ -121,7 +121,7 @@ def request_credential(request):
 	   Redirects to login (issuance policy)
 
 	"""
-	return HttpResponse("These 2 servers communicated succesfully");
+	return HttpResponse("These 2 servers communicated succesfully")
 
 
 def _verify_attribute_vals(attributes):

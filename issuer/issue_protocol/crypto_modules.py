@@ -1,5 +1,5 @@
 """
-	Basic implmentation of cryptographic functions
+	Basic implementation of cryptographic functions
 """
 from petlib.bn import Bn
 from hashlib import sha1
