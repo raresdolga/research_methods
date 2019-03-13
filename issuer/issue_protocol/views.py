@@ -30,7 +30,10 @@ sign_algh = Signature()
 # User Interface Views. - Not relevent for the API
 """The following functions are mostly for frontend authentication"""
 
+
+@api_view(["POST"])
 @csrf_exempt
+@permission_classes((AllowAny,))
 def signup_api(request):
 	"""Example of how frontend implements signup.
 		The html files are in templates/registration folder folder 
