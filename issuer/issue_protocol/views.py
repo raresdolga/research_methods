@@ -30,6 +30,7 @@ sign_algh = Signature()
 # User Interface Views. - Not relevent for the API
 """The following functions are mostly for frontend authentication"""
 
+@csrf_exempt
 def signup(request):
 	"""Example of how frontend implements signup.
 		The html files are in templates/registration folder folder 
@@ -95,7 +96,8 @@ def get_credential(request):
 				desired attribyutes
 	"""
 	data = request.data
-	#logger.error(data)
+	logger.error(data)
+	logger.warning("Hello")
 	#verify attributes values
 	(check, err_attr) = _verify_attribute_vals(data['attributes'])
 	response = {}
@@ -121,7 +123,7 @@ def request_credential(request):
 	   Redirects to login (issuance policy)
 
 	"""
-	return HttpResponse("These 2 servers communicated succesfully");
+	return HttpResponse("These 2 servers communicated succesfully")
 
 
 def _verify_attribute_vals(attributes):
