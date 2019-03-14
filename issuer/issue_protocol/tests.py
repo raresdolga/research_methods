@@ -1,5 +1,5 @@
 from django.test import TestCase
-from issue_protocol.crypto_modules import Signature
+from issue_protocol.crypto_modules import Signature, Blind_Sig
 from petlib.ec import EcGroup
 from petlib.ec import EcPt
 from petlib.bn import Bn
@@ -52,6 +52,23 @@ class SignatureTestCase(TestCase):
 
 		# test .hex()
 		self.assertEqual(Bn.from_hex(sig[0].hex()), sig[0])
+
+	def test_blind_sig(self):
+		obj = Blind_Sig()
+
+		n,e = obj.pk
+		r = Bn(2) + n.random()
+
+		m = Bn(256).random()
+		m_b = obj.blind(r, m, obj.pk)
+		#s_b = obj.sign(m_b, obj.sk)
+
+		#s = obj.unblind(s_b, obj.pk)
+		#self.assertEqual(m, obj.verify(s, obj.pk))
+
+
+
+
 
 
 
