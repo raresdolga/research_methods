@@ -27,5 +27,11 @@ Make a virtual environment for each project (1 issuer, 1 user) - Otherwise Apach
 4. The 80 port (default) is configure to redirect to 443
 [Tutorial Link](https://www.digitalocean.com/community/tutorials/how-to-create-a-ssl-certificate-on-apache-for-ubuntu-14-04)
 
+#### Asynchronous responses:       
+Use celery to send a response in async. Send an email to the user when the credential is ready to be used.      
+https://medium.com/@ffreitasalves/executing-time-consuming-tasks-asynchronously-with-django-and-celery-8578eebab356
+
+
+
 
 

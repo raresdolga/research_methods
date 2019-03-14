@@ -22,6 +22,7 @@ import ssl
 import logging
 
 from issue_protocol.crypto_modules import Signature
+from issue_protocol.models import Credential_Batch
 
 logger = logging.getLogger(__name__)
 #one signature setup - use just one set of keys
@@ -102,15 +103,23 @@ def get_credential(request):
 	if not check :
 		response['valid'] = False
 		response['invalid attributes'] = err_attr
-		response['credential'] = None
+		response['policy_info'] = None
 		return Response(response, status=HTTP_200_OK)
+
 	# attributes given are correct
+	# save the pk's (cred_ids) in database
+	_save_cred_ids(data['pub_keys'], 
+		request.user,data['policy_info'])
+
+	# construct response
 	response['valid'] = True
-	response['invalid attributes'] = []
+
+	# batch of signed cred, nr that must be sent to AP
+	batch_AP = _create_cred(data)
+
 	# get credential as a dictionary
-	response['credential'] = _create_cred(data)
-	#logger.error("Test \n")
-	#logger.error(json.dumps(response))
+	response['policy_info'] = batch_AP; 
+	
 	# send blinded cred_id to be saved on the ledger for revocation
 	return Response(response, status=HTTP_200_OK)
 
@@ -123,6 +132,20 @@ def request_credential(request):
 	"""
 	return HttpResponse("These 2 servers communicated succesfully");
 
+"""
+	Save batch of credential keys 
+	in database under username
+	Args:
+		ids (list(str)): the public keys sent by user
+"""
+def _save_cred_ids(ids, user, policy):
+	#serialize ids as a JSON list
+	str_list = json.dumps(ids)
+	id_batch = "".join([user.username, policy])
+	batch = Credential_Batch(batchId=id_batch,
+		user_name=user.username,public_keys=str_list)
+	#one user has a single batch for a policy
+	batch.save()
 
 def _verify_attribute_vals(attributes):
 	"""Queries the database to verify values for attributes requested
@@ -141,6 +164,7 @@ def _verify_attribute_vals(attributes):
 			invalid_fields.append(key)
 	return (ok, invalid_fields)
 
+
 def _create_cred(data):
 	""" Creates a credential using dictionaries
 		Args: 
@@ -150,24 +174,21 @@ def _create_cred(data):
 			signiture is a tuple of petlib.BN in code.
 			Passed to json as an array of hex strings, for each elem in the tuple
 	"""
-	credential = {}
-	#blindly set credential id - encrypted when sent
-	credential['cred_id'] = data['cred_id']
-	# put attributes
-	credential['attributes'] = data['attributes']
-	# compute sitring to sign
-	list_str = [str(credential['attributes']), str(credential['cred_id'])]
-	str_cred = "".join(list_str)
-	# logg how the string looks
-	logger.error('Encoding cred\n')
-	logger.error(str_cred)
-	# sign string of credential
-	sig, hash_ = sign_algh.sign_message(sign_algh.G, sign_algh.sig_key, str_cred)
-	# add signature - hex of petlib.BNs in the tuples
-	# use from_hex() to transform back in petlib.BN
-	logger.error(type(sig[0].hex()))
-	credential['signaure'] = [sig[0].hex(), sig[1].hex()]
-	return credential
+	batch_AP = {}
+
+	batch_AP['signaures'] = []
+	batch_AP['pub_keys'] = []
+	for var in data['pub_keys']:
+		sig, hash_ = sign_algh.sign_message(sign_algh.G,
+		 sign_algh.sig_key, var)
+		# add signature - hex of petlib.BNs in the tuples
+		batch_AP['signaures'].append([sig[0].hex(), sig[1].hex()])
+		batch_AP['pub_keys'].append(var)
+
+	batch_AP['policy_info'] = data["policy_info"]
+	return batch_AP
+
+
 
 #==================Functions used for testing connection=================
 
