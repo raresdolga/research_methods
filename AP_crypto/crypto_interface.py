@@ -56,6 +56,7 @@ def main():
 		pk_str = sys.argv[2]
 		sig_hex = sys.argv[3]
 		hash_ = sys.argv[4]
+		print(verify_signature(G, pk, sig, _hash))
 
 
 
