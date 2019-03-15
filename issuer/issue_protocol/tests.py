@@ -32,6 +32,7 @@ class SignatureTestCase(TestCase):
 		G2 = ob2.G
 		res = obj.verify_signature(G2, obj.pub_key, sig, ob2.hash_str("TEST message"))
 		self.assertEqual(res, True)
+
 		p1 = obj.pub_key.export()
 		#print(type(p1))
 		p2 = EcPt.from_binary(p1, G2)
@@ -45,7 +46,7 @@ class SignatureTestCase(TestCase):
 		self.assertEqual(unhexlify(str_p1.encode()), p1)
 
 		# test encoding hash
-		h = ob2.hash_str("TEST message");
+		h = ob2.hash_str("TEST message")
 		str_ =  hexlify(h).decode()
 		print("hash n")
 		print(type(str_))

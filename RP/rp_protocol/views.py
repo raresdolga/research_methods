@@ -29,7 +29,8 @@ def example_token_issuer(request):
 	
 	#Do not use normal certificate, specify self signed certificate
 	# callee certificate made by me and NOT verified by a trusted authority
-	cert_path = "/etc/apache2/ssl/apache.crt";
+
+	cert_path = "/etc/apache2/ssl/apache.crt"
 	url = 'https://127.0.0.1/accounts/test_conn'
 	req = urllib.request.Request(url)
 	req.add_header('Authorization', 'Token 7e4470cb4efdc5e8657e3746413c73430465e838')
@@ -48,7 +49,7 @@ def test_connect_issuer(request):
 	"""
 	#Do not use normal certificate, specify self signed certificate
 	# calee certificate made by me and NOT verified by a trusted authority
-	cert_path = "/etc/apache2/ssl/apache.crt";
+	cert_path = "/etc/apache2/ssl/apache.crt"
 	url = 'https://127.0.0.1/accounts/test_conn'
 	response =  urllib.request.urlopen(url, cafile=cert_path)
 	content =  response.read().decode(response.headers.get_content_charset())
@@ -77,4 +78,5 @@ def test_ledger(request):
 	req = urllib.request.Request(url, data=data, headers={'content-type': 'application/json'})
 	response =  urllib.request.urlopen(req)
 	content =  response.read().decode(response.headers.get_content_charset())
+	
 	return JsonResponse(data)

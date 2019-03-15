@@ -20,8 +20,10 @@ import urllib.request
 import json
 import ssl
 import logging
+import ast
 
 from issue_protocol.crypto_modules import Signature
+from issue_protocol.models import Credential_Batch
 
 logger = logging.getLogger(__name__)
 #one signature setup - use just one set of keys
@@ -30,11 +32,7 @@ sign_algh = Signature()
 # User Interface Views. - Not relevent for the API
 """The following functions are mostly for frontend authentication"""
 
-
-@api_view(["POST"])
-@csrf_exempt
-@permission_classes((AllowAny,))
-def signup_api(request):
+def signup(request):
 	"""Example of how frontend implements signup.
 		The html files are in templates/registration folder folder 
 	"""
@@ -44,10 +42,8 @@ def signup_api(request):
 			user = form.save()
 			username = form.cleaned_data.get('username')
 			raw_password = form.cleaned_data.get('password1')
-
-			#login(request, user)
-			#return redirect('accounts:get_credential')
-			return Response(status=HTTP_200_OK)
+			login(request, user)
+			return redirect('accounts:get_credential')
 	else:
 		form = UserCreationForm()
 	return render(request, 'registration/signup.html', {'form': form})
@@ -71,6 +67,7 @@ def login_view(request):
 
 @api_view(["POST"])
 @permission_classes((AllowAny,))
+@csrf_exempt
 def login_api(request):
     """ Implements login.
         Args: 
@@ -83,7 +80,6 @@ def login_api(request):
     if username is None or password is None:
         return Response({'error': 'Please provide both username and password'},
                         status=HTTP_400_BAD_REQUEST)
-	
     user = authenticate(username=username, password=password)
     if not user:
         return Response({'error': 'Invalid Credentials'},
@@ -95,30 +91,43 @@ def login_api(request):
 
 @api_view(['POST'])
 @permission_classes((IsAuthenticated,))
+#@permission_classes((AllowAny,))
 def get_credential(request):
 	""" Creates a credential and sends it to the user
 		Args:
 			 request (request): a request object containing the key for 
 				desired attribyutes
 	"""
+	#data = json.loads(request.data['payload'])
 	data = request.data
-	logger.error(data)
-	logger.warning("Hello")
+
 	#verify attributes values
 	(check, err_attr) = _verify_attribute_vals(data['attributes'])
+
 	response = {}
 	if not check :
 		response['valid'] = False
 		response['invalid attributes'] = err_attr
-		response['credential'] = None
+		response['policy_info'] = None
 		return Response(response, status=HTTP_200_OK)
+
 	# attributes given are correct
+	# save the pk's (cred_ids) in database
+	_save_cred_ids( eval(data['pub_keys']), request.user, data['policy_info'])
+
+	logger.error("")
+	logger.error("Passed save_cred_ids")
+	logger.error("")
+
+	# construct response
 	response['valid'] = True
-	response['invalid attributes'] = []
+
+	# batch of signed cred, nr that must be sent to AP
+	batch_AP = _create_cred(data)
+
 	# get credential as a dictionary
-	response['credential'] = _create_cred(data)
-	#logger.error("Test \n")
-	#logger.error(json.dumps(response))
+	response['policy_info'] = batch_AP; 
+	
 	# send blinded cred_id to be saved on the ledger for revocation
 	return Response(response, status=HTTP_200_OK)
 
@@ -129,8 +138,22 @@ def request_credential(request):
 	   Redirects to login (issuance policy)
 
 	"""
-	return HttpResponse("These 2 servers communicated succesfully")
+	return HttpResponse("These 2 servers communicated succesfully");
 
+"""
+	Save batch of credential keys 
+	in database under username
+	Args:
+		ids (list(str)): the public keys sent by user
+"""
+def _save_cred_ids(ids, user, policy):
+	#serialize ids as a JSON list
+	str_list = json.dumps(ids)
+	id_batch = "".join([user.username, policy])
+	batch = Credential_Batch(batchId=id_batch,
+		user_name=user.username,public_keys=str_list)
+	#one user has a single batch for a policy
+	batch.save()
 
 def _verify_attribute_vals(attributes):
 	"""Queries the database to verify values for attributes requested
@@ -142,12 +165,17 @@ def _verify_attribute_vals(attributes):
 	# dummy function for prototype
 	cred_attr = {"name":"user1", "age":"30", "City":"London"}
 	invalid_fields = []
+
+	#attributes = ast.literal_eval(attributes)
+	dict_attributes = ast.literal_eval(attributes)
+
 	ok = True
-	for key in attributes:
-		if not(key in cred_attr and cred_attr[key] == attributes[key]) :
+	for key in dict_attributes:
+		if not(key in cred_attr and cred_attr[key] == dict_attributes[key]) :
 			ok = False
 			invalid_fields.append(key)
 	return (ok, invalid_fields)
+
 
 def _create_cred(data):
 	""" Creates a credential using dictionaries
@@ -158,24 +186,21 @@ def _create_cred(data):
 			signiture is a tuple of petlib.BN in code.
 			Passed to json as an array of hex strings, for each elem in the tuple
 	"""
-	credential = {}
-	#blindly set credential id - encrypted when sent
-	credential['cred_id'] = data['cred_id']
-	# put attributes
-	credential['attributes'] = data['attributes']
-	# compute sitring to sign
-	list_str = [str(credential['attributes']), str(credential['cred_id'])]
-	str_cred = "".join(list_str)
-	# logg how the string looks
-	logger.error('Encoding cred\n')
-	logger.error(str_cred)
-	# sign string of credential
-	sig, hash_ = sign_algh.sign_message(sign_algh.G, sign_algh.sig_key, str_cred)
-	# add signature - hex of petlib.BNs in the tuples
-	# use from_hex() to transform back in petlib.BN
-	logger.error(type(sig[0].hex()))
-	credential['signaure'] = [sig[0].hex(), sig[1].hex()]
-	return credential
+	batch_AP = {}
+
+	batch_AP['signaures'] = []
+	batch_AP['pub_keys'] = []
+	for var in data['pub_keys']:
+		sig, hash_ = sign_algh.sign_message(sign_algh.G,
+		 sign_algh.sig_key, var)
+		# add signature - hex of petlib.BNs in the tuples
+		batch_AP['signaures'].append([sig[0].hex(), sig[1].hex()])
+		batch_AP['pub_keys'].append(var)
+
+	batch_AP['policy_info'] = data["policy_info"]
+	return batch_AP
+
+
 
 #==================Functions used for testing connection=================
 
