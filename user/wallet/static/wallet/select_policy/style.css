@@ -1,0 +1,85 @@
+.select-policy-form{
+	max-width: 550px;
+	background: #f4f7f8;
+	margin: 10px auto;
+	padding: 20px;
+	border-radius: 8px;
+	font-family: Georgia, "Times New Roman";
+}
+.select-policy-form fieldset{
+	border: none;
+}
+.select-policy-form legend {
+	font-size: 1.4em;
+	margin-bottom: 10px;
+}
+.select-policy-form label {
+	display: block;
+	margin-bottom: 8px;
+}
+.select-policy-form input[type="text"],
+.select-policy-form textarea,
+.select-policy-form select {
+	font-family: Georgia, "Times New Roman", Times, serif;
+	background: rgba(255,255,255,.1);
+	border: none;
+	border-radius: 4px;
+	font-size: 15px;
+	margin: 0;
+	outline: 0;
+	padding: 10px;
+	width: 100%;
+	box-sizing: border-box; 
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box; 
+	background-color: #e8eeef;
+	color:#8a97a0;
+	-webkit-box-shadow: 0 1px 0 rgba(0,0,0,0.03) inset;
+	box-shadow: 0 1px 0 rgba(0,0,0,0.03) inset;
+	margin-bottom: 30px;
+}
+.select-policy-form input[type="text"]:focus,
+.select-policy-form textarea:focus,
+.select-policy-form select:focus{
+	background: #d2d9dd;
+}
+.select-policy-form select{
+	-webkit-appearance: menulist-button;
+	height:35px;
+}
+.select-policy-form .number {
+	background: #3878d8;
+	color: #fff;
+	height: 30px;
+	width: 30px;
+	display: inline-block;
+	font-size: 0.8em;
+	margin-right: 4px;
+	line-height: 30px;
+	text-align: center;
+	text-shadow: 0 1px 0 rgba(255,255,255,0.2);
+	border-radius: 15px 15px 15px 0px;
+}
+
+.select-policy-form input[type="submit"],
+.select-policy-form input[type="button"]
+{
+	position: relative;
+	display: block;
+	padding: 19px 39px 18px 39px;
+	color: #FFF;
+	margin: 0 auto;
+	background: #3878d8;
+	font-size: 18px;
+	text-align: center;
+	font-style: normal;
+	width: 100%;
+	border: 1px solid #3878d8;
+	border-width: 1px 1px 3px;
+	margin-bottom: 10px;
+}
+.select-policy-form input[type="submit"]:hover,
+.select-policy-form input[type="button"]:hover
+{
+	background: #3878d8;
+}

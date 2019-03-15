@@ -1,8 +1,9 @@
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
+from django.http import HttpResponseRedirect
 
 from .models import Credential
-from .forms import NewCredentialForm
+from .forms import Passport
 
 from datetime import datetime
 
@@ -18,19 +19,17 @@ def detail(request, credential_id):
   credential = get_object_or_404(Credential, pk=credential_id)
   return render(request, 'wallet/detail.html', {'credential': credential})
 
-def add(request):
+def use_credential(request):
+  return render(request, 'wallet/use_credential.html')
+
+def select_policy(request):
+  return render(request, 'wallet/select_policy.html')
+
+def login_idp(request):
   print("It's valid!")
-  return render(request, 'wallet/retrieve-credential.html')
+  return render(request, 'wallet/login_idp.html')
 
-def addCredentialForm(request):
-  if request.method == 'POST':
-    form = NewCredentialForm(request.POST)
-    if form.is_valid():
-
-      new_credential = Credential()
-      new_credential.date = datetime.now()
-      new_credential.issuer = NewCredentialForm.issuer
-
-      new_credential.save()
-
-  return render(request, 'wallet/detail.html', {'credential': new_credential})
+def contact(request):
+  if request.method == 'POST': # If the form has been submitted...
+    data = request.POST['first_name']
+    print(type(data))

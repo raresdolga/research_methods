@@ -4,10 +4,14 @@
 coconut-lib/
 ##pycharm##
 .idea/
+
 ### OSX ###
 .DS_Store
 .AppleDouble
 .LSOverride
+
+# Text editors/environment
+.vscode/
 
 # Icon must end with two \r
 Icon

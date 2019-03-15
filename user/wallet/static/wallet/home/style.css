@@ -1,4 +1,4 @@
-/* Include the padding and border in an element's total width and height */
+
 * {
   box-sizing: border-box;
 }
@@ -57,7 +57,6 @@ input {
   border-radius: 0;
   width: 75%;
   padding: 10px;
-  float: left;
   font-size: 16px;
 }
 
