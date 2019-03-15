@@ -4,6 +4,7 @@ from binascii import unhexlify
 from uuid import uuid4
 
 from django.test import TestCase
+from petlib.bn import Bn
 from petlib.ec import EcPt
 from rest_framework.parsers import JSONParser
 from rest_framework.test import RequestsClient
@@ -87,18 +88,7 @@ class SerializationTests(TestCase):
         new = PolicySerializer(uuid4().hex)
         print(new.data)
 
-
-    # def test_verify_policy(self):
-    #     # Create dummy objects
-    #     sessionID = UserSessionID("44848f0642c411e9b210d663bd873d93").sessionID
-    #     cred = CredentialSerializer(DummyCredential(age=21, nationality="Dutch"))
-    #     policy = PresentationPolicy("44848f0642c411e9b210d663bd873d93")
-    #     policy.ap_key = hexlify(self.sig.pub_key.export()).decode("utf8")
-    #     policy.credential = DummyCredential(age=21, nationality="Dutch")
-    #
-    #     # Create True signatures and digests
-    #     policy.sessionID_sig, policy.sessionID = self.sig.sign_message(sessionID)
-    #     policy.cred_sig, policy.cred_hash = self.sig.sign_message(cred.get_string())
-    #     print(JSONRenderer().render(PolicySerializer(policy).data))
-    #     res = verify_policy(PolicySerializer(policy).data)
-    #     self.assertTrue(res)
+    def test_uuid_to_hex(self):
+        uuid = uuid4().hex
+        bn = Bn.from_hex(uuid)
+        print(bn)

@@ -1,14 +1,12 @@
-import io
 from binascii import unhexlify
 
 from petlib.bn import Bn
 from petlib.ec import EcPt, EcGroup
 from rest_framework import serializers
-from rest_framework.parsers import JSONParser
 
+from rp_protocol.crypto import Signature
 from rp_protocol.models import UserPolicyInformation
 from rp_protocol.serializers import PolicySerializer
-from rp_protocol.crypto import Signature
 
 
 def get_sig_from_string(sig):
@@ -19,8 +17,15 @@ def get_sig_from_string(sig):
     return r, s
 
 def check_policy_format(policy):
-    # stream = io.BytesIO(policy)
-    # data = JSONParser().parse(policy)
+    """
+        Checks that the format of the policy is correct and that all the
+            required fields are supplied
+        Args:
+           policy (dict): json dict received from the user.
+        Returns:
+           serializer (serializer): serializer if True, raise exception otherwise.
+    """
+
     serializer = PolicySerializer(data=policy)
     if serializer.is_valid(raise_exception=True):
         return serializer
@@ -38,13 +43,13 @@ def verify_policy(policy):
             sessionEntry = UserPolicyInformation.objects.get(pk=data.get('sessionID'))
 
             # Check that the public keys match
-            assert data.get('accepted_policies') == sessionEntry.accepted_policies
+            if not data.get('accepted_policies') == sessionEntry.accepted_policies: return False
 
             public_key = EcPt.from_binary(unhexlify(sessionEntry.accepted_policies.encode()), EcGroup(713))
             sig = get_sig_from_string(data.get("sessionID_sig"))
 
             # Make sure the SessionID is verified
-            assert Signature.verify_signature(public_key, sig, data.get("sessionID"))
+            if not Signature.verify_signature(public_key, sig, data.get("sessionID")): return False
 
             # Add to the DB
             sessionEntry.verified = True

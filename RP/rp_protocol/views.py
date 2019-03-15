@@ -1,15 +1,15 @@
 import urllib.request
+from uuid import uuid4
+
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
 from rest_framework import status
 from rest_framework.decorators import api_view
-from uuid import uuid4
 
 from rp_protocol.crypto import Signature
-from rp_protocol.forms import SessionIDForm
-from rp_protocol.helpers import check_policy_format, verify_policy
+from rp_protocol.helpers import verify_policy
 from rp_protocol.models import UserPolicyInformation
-from rp_protocol.serializers import SignatureSerializer, APKeySerializer, PolicySerializer
+from rp_protocol.serializers import PolicySerializer
 
 # ==================Functions used for testing connection=================
 
@@ -89,6 +89,14 @@ def test_ledger(request):
     content = response.read().decode(response.headers.get_content_charset())
     return JsonResponse(data)
 
+
+@api_view(['GET', 'POST'])
+def test_verification(request):
+    if request.method == 'POST':
+        return JsonResponse(request.data)
+
+
+
 # ==================Functions used in the Relying Party API=================
 
 
@@ -104,7 +112,7 @@ def request_access(request):
         sig = Signature()
 
         # Create New PolicyInformation object with unique uuid
-        new_session = UserPolicyInformation(sessionID=uuid4(), accepted_policies=sig.pub_key)
+        new_session = UserPolicyInformation(sessionID=uuid4().hex, accepted_policies=sig.pub_key)
 
         # TODO: remove after testing
         s = sig.sign_message(new_session.sessionID.__str__())
@@ -114,18 +122,15 @@ def request_access(request):
 
         # Check if sessionID is already in use
         if UserPolicyInformation.objects.filter(pk=new_session.sessionID).exists():
-            return HttpResponse(data = "Couldn't generate a unique uuid, please try again", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return HttpResponse(data="Couldn't generate a unique uuid, please try again",
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             new_session.save()
             data = PolicySerializer(new_session).data
             return JsonResponse(data=data, status=status.HTTP_201_CREATED)
     else:
-        return HttpResponse(data = "Please submit a GET request to this path", status=status.HTTP_400_BAD_REQUEST)
+        return HttpResponse(data="Please submit a GET request to this path", status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['GET', 'POST'])
-def test_verification(request):
-    if request.method == 'POST':
-        return JsonResponse(request.data)
 
 @api_view(['GET', 'POST'])
 def verify_session(request):
@@ -136,6 +141,10 @@ def verify_session(request):
             return HttpResponse("Your signatures didn't match")
     else:
         return HttpResponse("Wrong request")
+
+
+# ==================Functions used for debuggging the Relying Party API=================
+
 
 @api_view(['GET'])
 def put_all(request):
@@ -150,13 +159,3 @@ def delete_all(request):
     if request.method == 'GET':
         UserPolicyInformation.objects.all().delete()
         return HttpResponse("Thanks")
-
-# @api_view(['GET'])
-# def create_new_ap_policy(request):
-#     data = APKeySerializer(Signature().pub_key).data
-#     policy = APPublicKey(data)
-#     if not APPublicKey.objects.filter(pk=policy.public_key).exists():
-#         policy.save()
-#         return JsonResponse(data=data, safe=True, status=status.HTTP_201_CREATED)
-#     else:
-#         return HttpResponse(data="Matching Policy Exists in DB", status=status.HTTP_500_INTERNAL_SERVER_ERROR)

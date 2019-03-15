@@ -1,9 +1,6 @@
-import msgpack
 from petlib import pack
 from rest_framework import serializers
-from rest_framework.fields import SerializerMethodField
-import binascii
-from rp_protocol.crypto import Signature
+
 from rp_protocol.models import UserPolicyInformation
 
 
@@ -26,7 +23,7 @@ class APKeySerializer(serializers.Serializer):
 
 
 class PolicySerializer(serializers.Serializer):
-    sessionID = serializers.UUIDField()
+    sessionID = serializers.CharField()
     sessionID_sig = serializers.CharField()
     accepted_policies = serializers.CharField()
 

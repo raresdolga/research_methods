@@ -1,12 +1,11 @@
 """
 	Basic implementation of cryptographic functions
 """
-import msgpack
+from hashlib import sha256
+
 from petlib.bn import Bn
 from petlib.ec import EcGroup
 from petlib.ecdsa import *
-from hashlib import sha256
-from binascii import hexlify
 
 
 class Signature:
