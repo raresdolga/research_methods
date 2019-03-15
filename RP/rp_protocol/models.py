@@ -1,11 +1,8 @@
 from django.db import models
 
-
-class UserSessionID(models.Model):
+class UserPolicyInformation(models.Model):
     sessionID = models.UUIDField(primary_key=True, unique=True, editable=False)
+    sessionID_sig = models.CharField(max_length=512, default=None, null=True)
+    accepted_policies = models.CharField(max_length=256, default="0355fb5dfc02bca617688ec3c02c4e41bf7705a32a0fd5f87af6baf100")
+    verified = models.BooleanField(default=False)
 
-
-
-class DummyCredential(models.Model):
-    age = models.IntegerField(editable=False)
-    nationality = models.CharField(max_length=100, editable=False)

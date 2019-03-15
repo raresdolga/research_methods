@@ -4,6 +4,7 @@ from issue_protocol.crypto_modules import Signature
 
 class SignatureTestCase(TestCase):
 	"""check Signature class"""
+
 	def setUp(self):
 		self.signature = Signature()
 

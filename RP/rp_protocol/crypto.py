@@ -51,9 +51,10 @@ class Signature:
 
         # sign hashed message
         signature = do_ecdsa_sign(G, s_k, digest)
-        return signature, digest.decode()
+        return signature
 
-    def verify_signature(self, G, p_k, sig, messg):
+    @classmethod
+    def verify_signature(self, p_k, sig, messg, G=None):
         """
             Verifies the signature provided aginst a public key
                 The public key, group G must correspond to secret key used for signing
@@ -61,45 +62,16 @@ class Signature:
             Args:
                 G (EcGroup):the group in which math is done.
                 p_k (Bn): public key used to sign.
-                sig (str): signature to check
+                sig (Bn, Bn): signature to check
                 messg (str): the initial message
             Returns:
                 verified (Boolean): True if sig valid, False otherwise
         """
-        # hash_ = self.hash_str(messg)
-        return do_ecdsa_verify(G, p_k, sig, messg)
+        if G is None:
+            G = EcGroup(713)
 
-    def hash_str(self, messg):
-        """ Signs the message
-            Args:
-                messg (str): the message to be hashed
-            Return:
-                hash_ (str): the hashed value of the messg
-        """
-        return sha256(messg.encode()).hexdigest()
-
-
-class CredentialVerifier():
-    group = EcGroup()
-
-    @classmethod
-    def verify_signature(self, ver_key, sig, data, g=None):
-        """ Verifies the signature provided against a public key
-            The public key, group G must correspond to secret key used for signing
-            Not the public key of the class
-            Args:
-                group (EcGroup):the group in which math is done.
-                ver_key (Bn): public key used to sign.
-                   sig (str): signature to check
-                   messg (str): the initial message
-               Returns:
-                   verified (Boolean): True if sig valid, False otherwise
-        """
-        hash_ = self.hash_str(data)
-        if self.group == None:
-            return do_ecdsa_verify(self.group, ver_key, sig, hash_)
-        else:
-            return do_ecdsa_verify(g, ver_key, sig, hash_)
+        hash = self.hash_str(messg).encode()
+        return do_ecdsa_verify(G, p_k, sig, hash)
 
     @classmethod
     def hash_str(self, messg):
@@ -112,16 +84,3 @@ class CredentialVerifier():
         return sha256(messg.encode()).hexdigest()
 
 
-class Custom_Encode_Decode:
-    def __eq__(self, other):
-       return isinstance(other, Custom_Encode_Decode)
-
-    def enc_CustomClass(obj):
-        if isinstance(obj, Custom_Encode_Decode):
-            return msgpack.ExtType(10, b'')
-        raise TypeError("Unknown type: %r" % (obj,))
-
-    def dec_CustomClass(code, data):
-        if code == 10:
-            return Custom_Encode_Decode()
-        return msgpack.ExtType(code, data)

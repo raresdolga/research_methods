@@ -3,13 +3,13 @@ from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
 from rest_framework import status
 from rest_framework.decorators import api_view
+from uuid import uuid4
 
 from rp_protocol.crypto import Signature
 from rp_protocol.forms import SessionIDForm
 from rp_protocol.helpers import check_policy_format, verify_policy
-from rp_protocol.models import UserSessionID, DummyCredential
-from rp_protocol.policies import PresentationPolicy
-from rp_protocol.serializers import UserSerializer, CredentialSerializer
+from rp_protocol.models import UserPolicyInformation
+from rp_protocol.serializers import SignatureSerializer, APKeySerializer, PolicySerializer
 
 # ==================Functions used for testing connection=================
 
@@ -96,47 +96,51 @@ def home(request):
     return render(request, 'html/instructions.html', {}, status=status.HTTP_200_OK)
 
 
-@api_view(['GET', 'POST'])
+@api_view(['GET'])
 def request_access(request):
-    if request.method == 'POST':
+    if request.method == 'GET':
+        
+        # TODO: remove after testing
+        sig = Signature()
 
-        # Create form
-        form = SessionIDForm(request.POST)
+        # Create New PolicyInformation object with unique uuid
+        new_session = UserPolicyInformation(sessionID=uuid4(), accepted_policies=sig.pub_key)
 
-        # If valid save sessionID to the database
-        if form.is_valid():
-            sessionID = UserSessionID(form.cleaned_data.get('sessionID'))
+        # TODO: remove after testing
+        s = sig.sign_message(new_session.sessionID.__str__())
+        print("SessionID", new_session.sessionID)
+        print("Pub: ", sig.pub_key)
+        print("Sig: ", s)
 
-            # Check if sessionID is already in use
-            if UserSessionID.objects.filter(pk=sessionID.sessionID).exists():
-                return render(request, 'forms/sessionIDForm.html',
-                              {'message': "The sessionID was not unique, try again: ", 'form': form}, status=status.HTTP_200_OK)
-            else:
-                sessionID.save()
-                policy = PresentationPolicy(sessionID.sessionID)
-                return JsonResponse(policy.get_policy(), status=status.HTTP_201_CREATED)
+        # Check if sessionID is already in use
+        if UserPolicyInformation.objects.filter(pk=new_session.sessionID).exists():
+            return HttpResponse(data = "Couldn't generate a unique uuid, please try again", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
-            return HttpResponse("Oops, something went wrong.", status=status.HTTP_400_BAD_REQUEST)
+            new_session.save()
+            data = PolicySerializer(new_session).data
+            return JsonResponse(data=data, status=status.HTTP_201_CREATED)
     else:
-        form = SessionIDForm()
-    return render(request, 'forms/sessionIDForm.html', {'message':"Please enter a unique ",'form': form}, status=status.HTTP_200_OK)
-
+        return HttpResponse(data = "Please submit a GET request to this path", status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET', 'POST'])
-def present_credentials(request):
+def test_verification(request):
+    if request.method == 'POST':
+        return JsonResponse(request.data)
+
+@api_view(['GET', 'POST'])
+def verify_session(request):
     if request.method == 'POST':
         if verify_policy(request.data):
-            return JsonResponse(request.data)
+            return HttpResponse("Success")
         else:
-            return HttpResponse("Didn't match")
+            return HttpResponse("Your signatures didn't match")
     else:
-        return HttpResponse("Test")
-
+        return HttpResponse("Wrong request")
 
 @api_view(['GET'])
 def put_all(request):
     if request.method == 'GET':
-        serializer = UserSerializer(UserSessionID.objects.all(), many=True)
+        serializer = PolicySerializer(UserPolicyInformation.objects.all(), many=True)
         data = serializer.data
         return JsonResponse(data=data, safe=False)
 
@@ -144,5 +148,15 @@ def put_all(request):
 @api_view(['GET'])
 def delete_all(request):
     if request.method == 'GET':
-        UserSessionID.objects.all().delete()
+        UserPolicyInformation.objects.all().delete()
         return HttpResponse("Thanks")
+
+# @api_view(['GET'])
+# def create_new_ap_policy(request):
+#     data = APKeySerializer(Signature().pub_key).data
+#     policy = APPublicKey(data)
+#     if not APPublicKey.objects.filter(pk=policy.public_key).exists():
+#         policy.save()
+#         return JsonResponse(data=data, safe=True, status=status.HTTP_201_CREATED)
+#     else:
+#         return HttpResponse(data="Matching Policy Exists in DB", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
