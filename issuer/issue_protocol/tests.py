@@ -4,6 +4,9 @@ from petlib.ec import EcGroup
 from petlib.ec import EcPt
 from petlib.bn import Bn
 from binascii import hexlify, unhexlify
+
+from math import *
+
 # Create your tests here.
 
 class SignatureTestCase(TestCase):
@@ -57,14 +60,25 @@ class SignatureTestCase(TestCase):
 		obj = Blind_Sig()
 
 		n,e = obj.pk
-		r = Bn(2) + n.random()
 
-		m = Bn(256).random()
+		# r must coprime with n
+		r = n.random()
+		one = Bn(1)
+		# comoute coprime
+		while gcd(n,r) != 1:
+			r = r + one
+
+		m = Bn(2) + Bn(128).random()
+
 		m_b = obj.blind(r, m, obj.pk)
-		#s_b = obj.sign(m_b, obj.sk)
-
-		#s = obj.unblind(s_b, obj.pk)
-		#self.assertEqual(m, obj.verify(s, obj.pk))
+		s_b = obj.sign(m_b, obj.sk)
+		print("TEST")
+		print(Bn.get_prime(2).int())
+		print(m)
+		print(m_b)
+		s = obj.unblind(r,s_b, obj.pk)
+		self.assertEqual(m, obj.verify(s, obj.pk))
+		self.assertNotEqual(m, m_b)
 
 
 

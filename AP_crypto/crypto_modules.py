@@ -85,8 +85,8 @@ class Blind_Sig:
 
 	def _setup(self):
 		one = Bn.from_decimal("1")
-		p = Bn(13)#Bn.get_prime(2)
-		q = (17)#Bn.get_prime(2)
+		p = Bn(13)#Bn.get_prime(512)
+		q = Bn(53)#Bn.get_prime(512)
 		n = p * q
 		phi = (p - one) * (q - one)
 		

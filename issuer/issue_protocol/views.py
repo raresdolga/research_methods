@@ -175,15 +175,17 @@ def _create_cred(data):
 			Passed to json as an array of hex strings, for each elem in the tuple
 	"""
 	batch_AP = {}
-
-	batch_AP['signaures'] = []
-	batch_AP['pub_keys'] = []
+	cred = {}
+	batch_AP['signaures'] = {}
+	cred['signaures'] = []
+	cred['pub_keys'] = []
 	for var in data['pub_keys']:
 		sig, hash_ = sign_algh.sign_message(sign_algh.G,
 		 sign_algh.sig_key, var)
 		# add signature - hex of petlib.BNs in the tuples
-		batch_AP['signaures'].append([sig[0].hex(), sig[1].hex()])
-		batch_AP['pub_keys'].append(var)
+		batch_AP['signaures'][var] = [sig[0].hex(), sig[1].hex()]
+		cred['signaures'].append([sig[0].hex(), sig[1].hex()])
+		cred['pub_keys'].append(var)
 
 	batch_AP['policy_info'] = data["policy_info"]
 	return batch_AP

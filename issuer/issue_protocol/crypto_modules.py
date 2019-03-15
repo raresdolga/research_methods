@@ -85,8 +85,8 @@ class Blind_Sig:
 
 	def _setup(self):
 		one = Bn.from_decimal("1")
-		p = Bn(13)#Bn.get_prime(2)
-		q = (17)#Bn.get_prime(2)
+		p = Bn(17)#Bn.get_prime(2)
+		q = Bn(13)#Bn.get_prime(2)
 		n = p * q
 		phi = (p - one) * (q - one)
 		
@@ -113,7 +113,7 @@ class Blind_Sig:
 		n,d = sk
 		return m_b.mod_pow(d,n)
 
-	def unblind(self,m_s_b, pk,r):
+	def unblind(self,r,m_s_b, pk):
 		n,e = pk
 		# r can 
 		m_s = m_s_b.mod_mul((r.mod_inverse(m=n)), n)
