@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
 # django rest
@@ -19,6 +19,13 @@ from rest_framework.authtoken.models import Token
 import urllib.request
 import json
 import ssl
+import logging
+
+from issue_protocol.crypto_modules import Signature
+
+logger = logging.getLogger(__name__)
+#one signature setup - use just one set of keys
+sign_algh = Signature()
 
 # User Interface Views. - Not relevent for the API
 """The following functions are mostly for frontend authentication"""
@@ -79,7 +86,7 @@ def login_api(request):
 
 
 
-@api_view(['GET', 'POST'])
+@api_view(['POST'])
 @permission_classes((IsAuthenticated,))
 def get_credential(request):
 	""" Creates a credential and sends it to the user
@@ -87,8 +94,25 @@ def get_credential(request):
 			 request (request): a request object containing the key for 
 				desired attribyutes
 	"""
-	logout(request)
-	return HttpResponse("return this credential");
+	data = request.data
+	#logger.error(data)
+	#verify attributes values
+	(check, err_attr) = _verify_attribute_vals(data['attributes'])
+	response = {}
+	if not check :
+		response['valid'] = False
+		response['invalid attributes'] = err_attr
+		response['credential'] = None
+		return Response(response, status=HTTP_200_OK)
+	# attributes given are correct
+	response['valid'] = True
+	response['invalid attributes'] = []
+	# get credential as a dictionary
+	response['credential'] = _create_cred(data)
+	#logger.error("Test \n")
+	#logger.error(json.dumps(response))
+	# send blinded cred_id to be saved on the ledger for revocation
+	return Response(response, status=HTTP_200_OK)
 
 @api_view(['GET'])
 @permission_classes((AllowAny,))
@@ -97,7 +121,7 @@ def request_credential(request):
 	   Redirects to login (issuance policy)
 
 	"""
-	return HttpResponse("These 2 servers communicated succesfully");
+	return HttpResponse("These 2 servers communicated succesfully")
 
 
 def _verify_attribute_vals(attributes):
@@ -111,13 +135,38 @@ def _verify_attribute_vals(attributes):
 	cred_attr = {"name":"user1", "age":"30", "City":"London"}
 	invalid_fields = []
 	ok = True
-	dummy = 'value'
 	for key in attributes:
-		if cred_attr[key] != attributes[key] :
+		if not(key in cred_attr and cred_attr[key] == attributes[key]) :
 			ok = False
 			invalid_fields.append(key)
 	return (ok, invalid_fields)
 
+def _create_cred(data):
+	""" Creates a credential using dictionaries
+		Args: 
+			data(dict): data sent by user to be verified and cred_nr
+		Return:
+			cred(dict): credential in the form of a dictionary. The
+			signiture is a tuple of petlib.BN in code.
+			Passed to json as an array of hex strings, for each elem in the tuple
+	"""
+	credential = {}
+	#blindly set credential id - encrypted when sent
+	credential['cred_id'] = data['cred_id']
+	# put attributes
+	credential['attributes'] = data['attributes']
+	# compute sitring to sign
+	list_str = [str(credential['attributes']), str(credential['cred_id'])]
+	str_cred = "".join(list_str)
+	# logg how the string looks
+	logger.error('Encoding cred\n')
+	logger.error(str_cred)
+	# sign string of credential
+	sig, hash_ = sign_algh.sign_message(sign_algh.G, sign_algh.sig_key, str_cred)
+	# add signature - hex of petlib.BNs in the tuples
+	# use from_hex() to transform back in petlib.BN
+	credential['signaure'] = [sig[0].hex(), sig[1].hex()]
+	return credential
 
 #==================Functions used for testing connection=================
 

@@ -1,0 +1,15 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Session ID Form</title>
+</head>
+<body>
+    <h1>Create New Service Request</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ message }}
+        {{ form }}
+        <input type="submit" value="Submit" />
+    </form>
+</body>
+</html>
