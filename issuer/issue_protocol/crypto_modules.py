@@ -124,7 +124,4 @@ class Blind_Sig:
 		n,e = pk
 		return m_s.mod_pow(e, n)
 
-
-
-		
 		
