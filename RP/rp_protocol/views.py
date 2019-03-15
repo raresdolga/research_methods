@@ -99,7 +99,7 @@ def home(request):
 @api_view(['GET'])
 def request_access(request):
     if request.method == 'GET':
-        
+
         # TODO: remove after testing
         sig = Signature()
 
