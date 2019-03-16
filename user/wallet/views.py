@@ -28,8 +28,3 @@ def select_policy(request):
 def login_idp(request):
   print("It's valid!")
   return render(request, 'wallet/login_idp.html')
-
-def contact(request):
-  if request.method == 'POST': # If the form has been submitted...
-    data = request.POST['first_name']
-    print(type(data))
