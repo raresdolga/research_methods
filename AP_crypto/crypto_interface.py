@@ -76,7 +76,19 @@ def main():
 	if func == "get_AP_message":
 		bn = Bn.get_prime(128)
 		print(bn.hex())
-
+	if func == "gen_sign_keys":
+		# This are keys used by RSA to blindly sign 
+		# different from normal signature keys
+		# Have other types as well
+		# tuple of 2 Bn
+		# n = firts, e = second
+		pub = blind_Sig.pk
+		# n = first, d = second
+		priv = blind_Sig.sk
+		print("Public key:")
+		print([pub[0].hex(), pub[1].hex()])
+		print("Private key:")
+		print([priv[0].hex(), priv[1].hex()])
 
 
 if __name__ == "__main__":

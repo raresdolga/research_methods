@@ -8,7 +8,9 @@ from petlib.ecdsa import *
 from hashlib import sha256
 
 from math import *
+from random import SystemRandom
 
+from Crypto.PublicKey import RSA
 
 class Signature:
 	""" Keys and functions to sign and verify a signaure
@@ -123,5 +125,27 @@ class Blind_Sig:
 	def verify(self,m_s, pk):
 		n,e = pk
 		return m_s.mod_pow(e, n)
+
+class BlindSig():
+	def __init__(self):
+		self.pk, self.sk = self.setup()
+
+	def setup(self):
+		priv = RSA.generate(3072)
+		pub = priv.publickey()
+		return (pub, priv)
+
+	def blind(self,pk, r, msg):
+		return pk.blind(msg, r)
+
+	def blind_sign(self,priv, msg_b):
+		return priv.sign(msg_b, 0)
+
+	def unblind(self,msg_b_s, pub,r):
+		return pub.unblind(msg_b_s[0], r)
+
+	def verify(self,pub, msg, msg_sig):
+		return pub.verify(msg, (msg_sig,))
+
 
 		

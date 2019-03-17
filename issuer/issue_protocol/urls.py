@@ -7,6 +7,8 @@ urlpatterns = [
     path('accounts/get_credential', views.get_credential, name='get_credential'),
     path('accounts/req_cred', views.request_credential, name='req_cred'),
     path('accounts/get_token', views.login_api, name='get_token'),
+    path('accounts/gen_key', views.generate_keys, name='gen'),
+    path('accounts/get_keys', views.get_Issuser_pks, name='get_keys'),
     # tets purpose urls
     path('accounts/test_conn', views.test_connect, name='test_conn'),
     path('accounts/test_ledger', views.test_ledger, name='test_ledger'),

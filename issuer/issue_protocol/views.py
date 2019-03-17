@@ -22,11 +22,13 @@ import ssl
 import logging
 
 from issue_protocol.crypto_modules import Signature
-from issue_protocol.models import Credential_Batch
+from issue_protocol.models import Credential_Batch, Key
 
 logger = logging.getLogger(__name__)
 #one signature setup - use just one set of keys
 sign_algh = Signature()
+public_signer = sign_algh.pub_key
+private_signer = sign_algh.sig_key
 
 # User Interface Views. - Not relevent for the API
 """The following functions are mostly for frontend authentication"""
@@ -179,9 +181,17 @@ def _create_cred(data):
 	batch_AP['signaures'] = {}
 	cred['signaures'] = []
 	cred['pub_keys'] = []
+
+	#get key from database
+	fst = Key.objects.order_by('keyId')[0]
+	private_signer = fst.secretKey
+	public_signer = fst.publicKey
+
+	sign_key = Bn.from_hex(private_signer)
+
 	for var in data['pub_keys']:
 		sig, hash_ = sign_algh.sign_message(sign_algh.G,
-		 sign_algh.sig_key, var)
+		 sign_key, var)
 		# add signature - hex of petlib.BNs in the tuples
 		batch_AP['signaures'][var] = [sig[0].hex(), sig[1].hex()]
 		cred['signaures'].append([sig[0].hex(), sig[1].hex()])
@@ -191,6 +201,24 @@ def _create_cred(data):
 	return batch_AP
 
 
+@api_view(['GET'])
+@permission_classes((AllowAny,))
+def generate_keys(request):
+	sigs = Signature()
+	public_signer = sigs.pub_key.export()
+	private_signer = sigs.sig_key
+	key = Key(publicKey=public_signer.hex(), secretKey=private_signer.hex())
+	key.save()
+	return Response({"status": "success"})
+
+@api_view(['GET'])
+@permission_classes((AllowAny,))
+def get_Issuser_pks(request):
+	lst = Key.objects.order_by('keyId')
+	res = []
+	for i in lst:
+		res.append(i.publicKey)
+	return Response(res)
 
 #==================Functions used for testing connection=================
 
