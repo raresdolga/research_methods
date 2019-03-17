@@ -88,17 +88,32 @@ def index(request):
 @csrf_exempt
 def login_view(request):
     if(request.method == 'POST'):
-        data = request.POST
+        rawData = request.POST
+        rawData = dict(rawData)
+        
+        rawData['username'] = rawData['username'][0]
+        rawData['password'] = rawData['password'][0]
+        rawData['csrfmiddlewaretoken'] = rawData['csrfmiddlewaretoken'][0]
+        logger.error(rawData)
         try:
-            response = requests.post("http://localhost:8000/accounts/get_token", data = dict(data.lists()))
-            if response.status_code == HTTP_200_OK:
+
+            cert_path = "/etc/apache2/ssl/apache.crt"
+            url = 'http://localhost:8000/accounts/get_token'
+            data = urllib.parse.urlencode(rawData).encode( "utf-8" )
+
+            req = urllib.request.Request(url, data=data)
+            response =  urllib.request.urlopen(req)
+            content =  response.read().decode('utf-8')
+            content = ast.literal_eval(content)
+
+            if response.status == HTTP_200_OK:
                 try:
-                    entry = newToken.objects.get(user = data['username'])
+                    entry = newToken.objects.get(user = rawData['username'])
                 except Exception as e :
-                    token = newToken(token = json.loads(response.text)['token'], user = data['username'])
+                    token = newToken(token = content['token'], user = rawData['username'])
                     token.save()
 
-                return redirect('/user/front_page/' + data['username'])
+                return redirect('/user/front_page/' + rawData['username'])
                 #return HttpResponse(token)
         except Exception as e:
             response =  str(e)      
@@ -106,7 +121,7 @@ def login_view(request):
     else:
         form = AuthenticationForm()
     
-    return render(request, 'registration/login.html', {'form': form})
+    return render(request, 'wallet/login_idp.html', {'form': form})
 
 
 def front_page(request, user = None):
@@ -136,15 +151,31 @@ def front_page(request, user = None):
             #PublicKeys.keys.append(str(public))
         
 
+        
         data = {}
-        #data['pub_keys'] = ["0354623943xxx282032-23", "12121", "12x01","88708042347237423093685-604968362"]
         data['pub_keys'] = public_keys
         data['attributes'] = {}
+
+        # here is the data from the wallet form - and here is where the problem is
+        # logger.error(rawData) shows the actual body of the post request this view receives
+        # the form does not send the data correctly
+
+        rawData = request.POST
+        rawData = dict(rawData)
+        
+        logger.error(rawData)
 
         # data['attributes']['name'] = request.POST['name']
         # data['attributes']['age'] = request.POST['age']
         # data['attributes']['City'] = request.POST['City']
         # data['policy'] = request.POST['policy']
+
+        # the above is what data this view should receive: name, age and City. The policy is 
+        # is decided at  the policy selection field: currently, the only two options are (Passport and Driving License)
+        # which should be received as either policy1 or policy2
+
+        # Below there are some hard coded values so that the backend could execute the "get_credential" request
+        # comment them when completed with values from the actual forms.
 
         data['attributes']['name'] = 'user1'
         data['attributes']['age'] = '30'
@@ -177,8 +208,8 @@ def front_page(request, user = None):
     
 
     else:
-        form = AuthenticationForm()
-        return render(request, 'registration/front_page.html', {'form': form})
+        # form = AuthenticationForm()
+        return render(request, 'wallet/select_policy.html')
 
 
 
