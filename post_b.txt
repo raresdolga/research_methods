@@ -1,0 +1,8 @@
+{"pub_keys":["0354623943xxx282032-23", "12121", "12x01","88708042347237423093685-604968362"],
+"attributes":{
+	"name":"user1",
+	"age":"30",
+	"City":"London"
+	},
+	"policy_info":"policy 5"
+}

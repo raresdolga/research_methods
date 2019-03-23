@@ -24,6 +24,8 @@ import logging
 from issue_protocol.crypto_modules import Signature
 from issue_protocol.models import Credential_Batch, Key
 
+from petlib.bn import Bn
+
 logger = logging.getLogger(__name__)
 #one signature setup - use just one set of keys
 sign_algh = Signature()
@@ -123,7 +125,8 @@ def get_credential(request):
 	response['policy_info'] = batch_AP; 
 	
 	# send blinded cred_id to be saved on the ledger for revocation
-	return Response(response, status=HTTP_200_OK)
+	res = connect_ledger()
+	return Response({"1":response, "res_led": res}, status=HTTP_200_OK)
 
 @api_view(['GET'])
 @permission_classes((AllowAny,))
@@ -262,7 +265,7 @@ def test_ledger(request):
 	try:
 		url = "http://aires-aps.uksouth.cloudapp.azure.com:3000/api/CredentialCard"
 		data = { "$class" : "org.example.biznet.CredentialCard",
-		 "credId" : "3", "cardDescription":"hello","active": True } # Data
+		 "credId" : "4", "cardDescription":"hello","active": True } # Data
 		req = urllib.request.Request(url)
 		req.add_header('Content-type', 'application/json; charset=utf-8')
 		json_data = json.dumps(data)
@@ -272,3 +275,48 @@ def test_ledger(request):
 		logger.error(e)
 		return HttpResponse(e)
 	return Response(response)
+
+def connect_ledger():
+	try:
+		url = "http://aires-aps.uksouth.cloudapp.azure.com:3000/api/CredentialCard"
+		data = { "$class" : "org.example.biznet.CredentialCard",
+		 "credId" : "6", "cardDescription":"hello","active": True } # Data
+		req = urllib.request.Request(url)
+		req.add_header('Content-type', 'application/json; charset=utf-8')
+		json_data = json.dumps(data)
+		json_as_bytes = json_data.encode('utf-8')
+		response = urllib.request.urlopen(req, json_as_bytes)
+	except Exception as e:
+		logger.error(e)
+		return HttpResponse(e)
+	return Response(response)
+
+s1 = BlindSig()
+
+r = SystemRandom().randrange(s1.pk.n >> 10, s1.pk.n)
+
+@api_view(['GET'])
+@permission_classes((IsAuthenticated,))
+def blind_sg(request):
+	m_unhas = request.data['mess']
+	
+	m = sha256(m_unhas.encode()).digest()
+
+	msg_b = s1.blind(s1.pk, r, m)
+
+	msg_b_s = s1.blind_sign(s1.sk, msg_b)
+
+	msg_s = s1.unblind(msg_b_s, s1.pk,r)
+	
+	h = sha256(m_unhas.encode()).digest()
+
+	return Response(msg_s_b)
+
+@api_view(['GET'])
+@permission_classes((IsAuthenticated,))
+def blind_verif(request):
+	m_unhas = request.data['mess']
+	h = sha256(m_unhas.encode()).digest()
+	res = s1.verify(s1.pk, h, msg_s)
+	return Response(res)
+
